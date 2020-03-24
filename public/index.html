@@ -12,13 +12,30 @@
 	<div class="container-fluid" style="text-align:center">
 
 		<div class="page-header">
-			
+			<h1>Emergency Alert</h1>
 
         	<p class="lead"></p>
       </div>
+		<div class="row">
+			<div class="col-md-12">
 
-		<div class="row" style="background-color:transparent">
+				<div id="emergency">
+					<h1>New Accident Alert</h1>
+					<p>Click to View Details</p>
+
+				</div>
+			</div>
+		</div>
+		<div class="row" style="background-color:transparent" id="details">
 			<div align="center">
+				<div class="row">
+					<div class="col-md-8">
+						<div class="car">
+							<h2 id="car"></h2>
+						</div>
+					</div>
+				</div>
+				<div class="values">
 				<div class="col-md-2" style="font-size:25px">
 					<div>
 						<span class="label label-default" style="font-size:20px">AccelX</span>				
@@ -87,7 +104,7 @@
 				</div>
 				<div class="col-md-6" style="font-size:25px">
 					<div>
-						<span class="label label-default" style="font-size:20px">Temperatura</span>				
+						<span class="label label-default" style="font-size:20px">Temperature</span>
 					</div>
 					<div>
 						<canvas id="gauge-temp" style="background-color:transparent;  width:200px; height:100px;"></canvas>
@@ -96,14 +113,59 @@
 						<div id="txt-gauge-temp" style="width:100px; height:100px; font-size: 35px; text-align: center; background-color:transparent"></div>
 					</div>
 				</div>
+				</div>
 				<div class="col-md-12">
-					<div class="container-fluid map" id="map" style="width:100%; height:500px;"></div>
+					<div class="container-fluid map" id="map" style="width:100%; height:300px;"></div>
 				</div>
 			</div>
 		</div>
 				
 			
 	</div>
+	<style>
+			#emergency{
+				border: solid 1px;
+				border-top-color: currentcolor;
+				border-right-color: currentcolor;
+				border-bottom-color: currentcolor;
+				border-left-color: currentcolor;
+				border-color:
+						red;
+				background:
+						red;
+				color:
+						#fff;
+				border-radius: 3px;
+				margin: 13px;
+				cursor: pointer;
+			}
+		#emergency,#details{
+			display: none;
+		}
+		#car{
+			font-size: 30px;
+			width: auto;
+			background:
+					#32a87d;
+			padding: 12px;
+			margin: 5px;
+			margin-left: 5px;
+			border-radius: 3px;
+			color:
+					#fff;
+			margin-left: 28px;
+		}
+		body{
+			background: url("images/bg.jpg");
+			background-size: 100%;
+		}
+	</style>
+
+	<video controls width="1" id="alert">
+
+		<source src="sound.mp4"
+				type="video/mp4">
+	</video>
 
 </body>
 
@@ -113,6 +175,7 @@
 <script type="text/javascript" src="javascript/googlemaps.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSjMmeNnPp00VQhtalS1czrRCYf2ATYLg&callback=myMap"></script>
 
+
 <script>
 
 var socket = io.connect();
@@ -120,8 +183,8 @@ var socket = io.connect();
 socket.on('location', function(location) {
 	city = location.city
 	country = location.country
-	lat = location.lat
-	lon = location.lon
+	lat = parseFloat(location.lat)
+	lon = parseFloat(location.lon)
 	query = location.query
 	region = location.region
 
@@ -136,8 +199,11 @@ socket.on('location', function(location) {
 		position: {lat: lat, lng: lon},
 		map: map,
 		title: 'Current Location',
+		zoom:7
 
 	});
+	//map.setCenter(pt);
+	map.setZoom(17);
 	marker.addListener('click', function() {
     	infowindow.open(map, marker);
   	});
@@ -146,6 +212,7 @@ socket.on('location', function(location) {
 });
 
 socket.on('accelData', function(accelData) {
+
 	var accelX = accelData.aX
    var accelY = accelData.aY
    var accelZ = accelData.aZ
@@ -153,7 +220,8 @@ socket.on('accelData', function(accelData) {
    var gyroX = accelData.gX
    var gyroY = accelData.gY
    var gyroZ = accelData.gZ
-    
+   var car=accelData.Car
+
 	document.getElementById("txt-gauge-accelX").innerHTML = accelX;
 	document.getElementById("txt-gauge-accelY").innerHTML = accelY;
 	document.getElementById("txt-gauge-accelZ").innerHTML = accelZ;
@@ -163,6 +231,7 @@ socket.on('accelData', function(accelData) {
 	document.getElementById("txt-gauge-gyroX").innerHTML = gyroX;
 	document.getElementById("txt-gauge-gyroY").innerHTML = gyroY;
 	document.getElementById("txt-gauge-gyroZ").innerHTML = gyroZ;
+	document.getElementById("car").innerHTML=car
 
 	// set gauge value
 	gauge_accelX.set(accelX);
@@ -171,13 +240,38 @@ socket.on('accelData', function(accelData) {
 	gauge_gyroX.set(gyroX);
 	gauge_gyroY.set(gyroY);
 	gauge_gyroZ.set(gyroZ);
-	gauge_temp.set(temp);
+	gauge_temp.set(temp);13
 
    //socket.emit('accelData', "got accelData");
 });
+socket.on('emergency', function(accelData) {
+
+	console.log("Emergency")
+	document.getElementById("emergency").style.display="block"
+
+		var promise = document.querySelector('video').play();
+
+		if (promise !== undefined) {
+			promise.then(_ => {
+
+			}).catch(error => {
+				// Autoplay was prevented.
+				// Show a "Play" button so that user can start playback.
+			});
+		}
+
+
+
+})
+
 </script>
 
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 
-
+<script>
+	$("#emergency").click(function () {
+		$("#details").show()
+	})
+</script>
